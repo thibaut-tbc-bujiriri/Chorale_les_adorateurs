@@ -34,13 +34,15 @@ async function getCategoryIdByName(name: string) {
     .from("categories")
     .select("id, name")
     .eq("name", name)
-    .single<CategoryLookupRow>();
+    .limit(1);
 
-  if (error || !data) {
+  const category = data?.[0];
+
+  if (error || !category) {
     throw new Error("Catégorie invalide ou introuvable");
   }
 
-  return data.id;
+  return (category as CategoryLookupRow).id;
 }
 
 async function getAll(filters?: Partial<SongFilters> & { search?: string }) {
@@ -78,10 +80,12 @@ async function getById(id: string) {
     .from("songs_view")
     .select("id, number, title, author, category, lyrics, created_at")
     .eq("id", id)
-    .single<SongViewRow>();
+    .limit(1);
 
-  if (error || !data) throw new Error(error?.message ?? "Chant introuvable");
-  return mapSong(data);
+  const song = data?.[0];
+
+  if (error || !song) throw new Error(error?.message ?? "Chant introuvable");
+  return mapSong(song as SongViewRow);
 }
 
 async function create(payload: SongPayload) {
@@ -97,10 +101,12 @@ async function create(payload: SongPayload) {
       lyrics: payload.lyrics,
     })
     .select("id")
-    .single<{ id: string }>();
+    .limit(1);
 
-  if (error || !data) throw new Error(error?.message ?? "Création du chant impossible");
-  return getById(data.id);
+  const createdSong = data?.[0];
+
+  if (error || !createdSong) throw new Error(error?.message ?? "Création du chant impossible");
+  return getById((createdSong as { id: string }).id);
 }
 
 async function update(id: string, payload: SongPayload) {

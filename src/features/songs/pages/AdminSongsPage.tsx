@@ -11,6 +11,8 @@ import type { Song } from "@/features/songs/types/song.types";
 export default function AdminSongsPage() {
   const { songsQuery, deleteSong } = useSongs();
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (songsQuery.isLoading) return <Loader label="Chargement des chants..." />;
 
@@ -25,6 +27,18 @@ export default function AdminSongsPage() {
           <Button>Nouveau chant</Button>
         </Link>
       </div>
+
+      {successMessage ? (
+        <p className="rounded-lg bg-emerald-100 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200">
+          {successMessage}
+        </p>
+      ) : null}
+
+      {errorMessage ? (
+        <p className="rounded-lg bg-rose-100 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
+          {errorMessage}
+        </p>
+      ) : null}
 
       {songsQuery.data?.length ? (
         <div className="space-y-3">
@@ -91,9 +105,16 @@ export default function AdminSongsPage() {
         description={`Le chant \"${selectedSong?.title ?? ""}\" sera retiré de la liste.`}
         confirmLabel="Supprimer"
         onCancel={() => setSelectedSong(null)}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!selectedSong) return;
-          deleteSong.mutate(selectedSong.id);
+          setErrorMessage(null);
+          setSuccessMessage(null);
+          try {
+            await deleteSong.mutateAsync(selectedSong.id);
+            setSuccessMessage("Chant supprimé avec succès.");
+          } catch (error) {
+            setErrorMessage((error as Error).message);
+          }
           setSelectedSong(null);
         }}
       />

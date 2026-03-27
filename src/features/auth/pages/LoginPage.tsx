@@ -52,6 +52,11 @@ export default function LoginPage() {
       <form className="mt-5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <Input label="Email" type="email" {...register("identifier")} error={errors.identifier?.message} />
         <Input label="Mot de passe" type="password" {...register("password")} error={errors.password?.message} />
+        <p className="-mt-1 text-right">
+          <Link to="/forgot-password" className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">
+            Mot de passe oublié ?
+          </Link>
+        </p>
 
         {error ? <p className="rounded-lg bg-rose-100 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">{error}</p> : null}
 

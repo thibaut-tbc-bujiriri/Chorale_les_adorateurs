@@ -4,7 +4,7 @@ import { LogIn, LogOut, Moon, Shield, Sun } from "lucide-react";
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
-import { publicNavItems } from "@/lib/constants";
+import { APP_NAME, publicNavItems } from "@/lib/constants";
 import { ROLE_LABELS } from "@/types/role";
 import { useUiStore } from "@/app/store/ui.store";
 
@@ -18,7 +18,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6">
         <Link to="/" className="max-w-[150px] truncate text-base font-bold tracking-tight text-brand-700 sm:max-w-none sm:text-lg dark:text-brand-200">
-          Les aadorateurs
+          {APP_NAME}
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

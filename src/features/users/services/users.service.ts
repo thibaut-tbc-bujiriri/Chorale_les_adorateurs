@@ -39,10 +39,11 @@ async function getById(id: string) {
     .from("profiles")
     .select("id, full_name, email, role, choir_voice, phone, joined_at")
     .eq("id", id)
-    .single<UserRow>();
+    .limit(1);
 
-  if (error || !data) throw new Error(error?.message ?? "Utilisateur introuvable");
-  return mapUser(data);
+  const user = data?.[0];
+  if (error || !user) throw new Error(error?.message ?? "Utilisateur introuvable");
+  return mapUser(user as UserRow);
 }
 
 async function create(payload: CreateUserPayload) {
@@ -66,7 +67,10 @@ async function create(payload: CreateUserPayload) {
     },
   });
 
-  if (signUpError) {
+  const normalizedSignUpError = signUpError?.message?.toLowerCase() ?? "";
+  const isEmailRateLimit = normalizedSignUpError.includes("email rate limit exceeded");
+
+  if (signUpError && !isEmailRateLimit) {
     throw new Error(signUpError.message);
   }
 
@@ -74,13 +78,18 @@ async function create(payload: CreateUserPayload) {
 
   let userId = createdUserId;
   if (!userId) {
-    const { data: profileByEmail, error: profileError } = await supabase
+    const { data: profileByEmailRows, error: profileError } = await supabase
       .from("profiles")
       .select("id")
       .eq("email", payload.email)
-      .single<{ id: string }>();
+      .limit(1);
+
+    const profileByEmail = profileByEmailRows?.[0];
 
     if (profileError || !profileByEmail) {
+      if (isEmailRateLimit) {
+        throw new Error("Limite d'envoi d'emails atteinte. Attendez quelques minutes puis réessayez.");
+      }
       throw new Error("Compte créé mais profil introuvable. Vérifiez le trigger handle_new_user.");
     }
 
@@ -96,14 +105,15 @@ async function create(payload: CreateUserPayload) {
       phone: payload.phone,
     })
     .eq("id", userId)
-    .select("id, full_name, email, role, choir_voice, phone, joined_at")
-    .single<UserRow>();
+    .select("id, full_name, email, role, choir_voice, phone, joined_at");
 
-  if (updateError || !updatedProfile) {
+  const updated = updatedProfile?.[0];
+
+  if (updateError || !updated) {
     throw new Error(updateError?.message ?? "Compte créé mais mise à jour du profil impossible");
   }
 
-  return mapUser(updatedProfile);
+  return mapUser(updated as UserRow);
 }
 
 async function update(id: string, payload: UserPayload) {
@@ -117,11 +127,12 @@ async function update(id: string, payload: UserPayload) {
       phone: payload.phone,
     })
     .eq("id", id)
-    .select("id, full_name, email, role, choir_voice, phone, joined_at")
-    .single<UserRow>();
+    .select("id, full_name, email, role, choir_voice, phone, joined_at");
 
-  if (error || !data) throw new Error(error?.message ?? "Mise à jour impossible");
-  return mapUser(data);
+  const user = data?.[0];
+
+  if (error || !user) throw new Error(error?.message ?? "Mise à jour impossible");
+  return mapUser(user as UserRow);
 }
 
 async function remove(id: string) {

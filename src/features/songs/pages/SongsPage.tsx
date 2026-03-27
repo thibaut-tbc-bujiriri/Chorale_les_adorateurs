@@ -16,7 +16,7 @@ export default function SongsPage() {
   const { categoriesQuery } = useCategories();
   const { songsQuery } = useSongs({ ...payload, search: debouncedSearch });
 
-  if (songsQuery.isLoading || categoriesQuery.isLoading) {
+  if ((songsQuery.isPending && !songsQuery.data) || categoriesQuery.isLoading) {
     return <Loader label="Chargement des chants..." />;
   }
 
@@ -44,6 +44,7 @@ export default function SongsPage() {
       </div>
 
       <SongSearchBar value={search} onChange={setSearch} />
+      {songsQuery.isFetching ? <p className="text-xs text-slate-500">Actualisation des résultats...</p> : null}
       <SongFilters filters={filters} categories={categories} onChange={updateFilter} />
       <SongList songs={songsQuery.data ?? []} />
     </section>

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/common/Button";
+import { APP_NAME } from "@/lib/constants";
 
 type DeferredPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -100,7 +101,7 @@ export function InstallPrompt() {
         <div>
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Installer l'application</p>
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-            Télécharge Les aadorateurs pour un accès rapide et hors ligne.
+            Télécharge {APP_NAME} pour un accès rapide et hors ligne.
           </p>
         </div>
       </div>
@@ -116,3 +117,4 @@ export function InstallPrompt() {
     </div>
   );
 }
+

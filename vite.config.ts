@@ -11,9 +11,9 @@ export default defineConfig({
       injectRegister: "auto",
       includeAssets: ["favicon.svg", "icons.svg", "logo_Chorale.jpeg"],
       manifest: {
-        name: "Les aadorateurs",
-        short_name: "Les aadorateurs",
-        description: "Application chorale installable pour Les aadorateurs.",
+        name: "Les adorateurs",
+        short_name: "Les adorateurs",
+        description: "Application chorale installable pour Les adorateurs.",
         theme_color: "#357352",
         background_color: "#f8fafc",
         display: "standalone",
@@ -51,3 +51,4 @@ export default defineConfig({
     },
   },
 });
+

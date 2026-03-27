@@ -14,6 +14,9 @@ interface AuthErrorLike {
   message?: string;
 }
 
+const AUTH_LOCK_STEAL_TEXT = "was released because another request stole it";
+const PASSWORD_DIFFERENT_TEXT = "New password should be different from the old password";
+
 function mapProfileToAuthUser(profile: ProfileRow): AuthUser {
   return {
     id: profile.id,
@@ -42,9 +45,49 @@ function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 8000): Promise<T> {
 function normalizeAuthError(error: unknown, fallback = "Connexion impossible. Vérifiez vos informations.") {
   const message = (error as AuthErrorLike)?.message ?? "";
   if (message.includes("TIMEOUT")) return "Connexion impossible pour le moment. Réessayez.";
+  if (message.includes(AUTH_LOCK_STEAL_TEXT)) return "Requête en cours de traitement. Veuillez réessayer.";
+  if (message.includes(PASSWORD_DIFFERENT_TEXT)) return "Ce mot de passe a déjà été appliqué. Essayez d'en choisir un autre.";
   if (message.includes("Invalid login credentials")) return "Email ou mot de passe incorrect.";
   if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email avant de vous connecter.";
+  if (message.includes("Password should be at least")) return "Le mot de passe doit contenir au moins 6 caractères.";
+  if (message.toLowerCase().includes("email rate limit exceeded")) {
+    return "Limite d'envoi d'emails atteinte. Réessayez dans quelques minutes ou désactivez la confirmation email pour la création admin.";
+  }
   return message || fallback;
+}
+
+function isAuthLockConflict(error: unknown) {
+  const message = (error as AuthErrorLike)?.message ?? "";
+  return message.includes(AUTH_LOCK_STEAL_TEXT);
+}
+
+function isPasswordDifferentError(error: unknown) {
+  const message = (error as AuthErrorLike)?.message ?? "";
+  return message.includes(PASSWORD_DIFFERENT_TEXT);
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function runWithAuthRetry<T>(operation: () => Promise<T>, retries = 2, timeoutMs = 8000): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await withTimeout(operation(), timeoutMs);
+    } catch (error) {
+      lastError = error;
+
+      if (!isAuthLockConflict(error) || attempt === retries) {
+        throw error;
+      }
+
+      await delay(120 * (attempt + 1));
+    }
+  }
+
+  throw lastError;
 }
 
 async function getProfile(userId: string): Promise<AuthUser> {
@@ -53,23 +96,24 @@ async function getProfile(userId: string): Promise<AuthUser> {
       .from("profiles")
       .select("id, email, full_name, role, choir_voice")
       .eq("id", userId)
-      .single<ProfileRow>(),
+      .limit(1),
   );
 
-  const { data, error } = response as { data: ProfileRow | null; error: { message: string } | null };
+  const { data, error } = response as { data: ProfileRow[] | null; error: { message: string } | null };
+  const profile = data?.[0] ?? null;
 
-  if (error || !data) {
-    throw new Error(error?.message ?? "Profil introuvable");
+  if (error || !profile) {
+    throw new Error(error?.message ?? "Profil introuvable.");
   }
 
-  return mapProfileToAuthUser(data);
+  return mapProfileToAuthUser(profile);
 }
 
 async function login(input: LoginInput): Promise<AuthUser> {
   const authClient = supabase.auth as any;
 
   try {
-    const response = await withTimeout(
+    const response = await runWithAuthRetry(() =>
       authClient.signInWithPassword({
         email: input.identifier,
         password: input.password,
@@ -95,7 +139,7 @@ async function register(input: RegisterInput): Promise<void> {
   const authClient = supabase.auth as any;
 
   try {
-    const response = await withTimeout(
+    const response = await runWithAuthRetry(() =>
       authClient.signUp({
         email: input.email,
         password: input.password,
@@ -125,7 +169,7 @@ async function register(input: RegisterInput): Promise<void> {
 
 async function logout() {
   const authClient = supabase.auth as any;
-  const response = await withTimeout(authClient.signOut());
+  const response = await runWithAuthRetry(() => authClient.signOut());
   const { error } = response as { error: { message: string } | null };
 
   if (error) {
@@ -133,11 +177,60 @@ async function logout() {
   }
 }
 
+async function requestPasswordReset(email: string) {
+  const authClient = supabase.auth as any;
+  const redirectTo = `${window.location.origin}/reset-password`;
+
+  try {
+    const response = await runWithAuthRetry(
+      () => authClient.resetPasswordForEmail(email, { redirectTo }),
+      2,
+      20000,
+    );
+    const { error } = response as { error: { message: string } | null };
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    throw new Error(normalizeAuthError(error, "Impossible d'envoyer l'email de réinitialisation."));
+  }
+}
+
+async function resetPassword(newPassword: string) {
+  const authClient = supabase.auth as any;
+
+  try {
+    // Password update can be slower on mobile networks; we allow a longer timeout
+    // to avoid false negative UI errors when the update actually succeeds.
+    const response = await runWithAuthRetry(
+      () =>
+        authClient.updateUser({
+          password: newPassword,
+        }),
+      2,
+      20000,
+    );
+
+    const { error } = response as { error: { message: string } | null };
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    // In some race conditions, Supabase can apply the password change and still
+    // return this error message on a concurrent follow-up call.
+    if (isPasswordDifferentError(error)) {
+      return;
+    }
+    throw new Error(normalizeAuthError(error, "Réinitialisation du mot de passe impossible."));
+  }
+}
+
 async function getCurrentUser(): Promise<AuthUser | null> {
   const authClient = supabase.auth as any;
 
   try {
-    const response = await withTimeout(authClient.getSession());
+    const response = await runWithAuthRetry(() => authClient.getSession());
 
     const {
       data: { session },
@@ -177,6 +270,8 @@ function onAuthStateChange(callback: (user: AuthUser | null) => void) {
 export const authService = {
   login,
   register,
+  requestPasswordReset,
+  resetPassword,
   logout,
   getCurrentUser,
   onAuthStateChange,

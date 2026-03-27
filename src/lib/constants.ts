@@ -5,7 +5,7 @@ import type { Song } from "@/features/songs/types/song.types";
 import type { User } from "@/features/users/types/user.types";
 import type { NavItem } from "@/types/global";
 
-export const APP_NAME = "Les aadorateurs";
+export const APP_NAME = "Les adorateurs";
 export const DEMO_PASSWORD = "chorale123";
 
 export const publicNavItems: NavItem[] = [

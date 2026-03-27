@@ -26,5 +26,7 @@ export interface AuthContextValue {
   loading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }

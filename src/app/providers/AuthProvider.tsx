@@ -51,13 +51,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await authService.register(input);
   };
 
+  const requestPasswordReset = async (email: string) => {
+    await authService.requestPasswordReset(email);
+  };
+
+  const resetPassword = async (newPassword: string) => {
+    await authService.resetPassword(newPassword);
+  };
+
   const logout = async () => {
     await authService.logout();
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout }),
+    () => ({ user, loading, login, register, requestPasswordReset, resetPassword, logout }),
     [user, loading],
   );
 

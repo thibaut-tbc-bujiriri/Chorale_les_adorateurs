@@ -9,13 +9,17 @@
 import { Link, Navigate, useRoutes } from "react-router-dom";
 
 import { AdminRoute } from "@/app/router/AdminRoute";
+import { AdminSessionLockRoute } from "@/app/router/AdminSessionLockRoute";
+import { GuestRoute } from "@/app/router/GuestRoute";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import { RoleGuard } from "@/app/router/RoleGuard";
 import { Button } from "@/components/common/Button";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
+import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import CategoriesAdminPage from "@/features/categories/pages/CategoriesAdminPage";
 import AdminDashboardPage from "@/features/dashboard/pages/AdminDashboardPage";
 import FavoritesPage from "@/features/favorites/pages/FavoritesPage";
@@ -27,6 +31,7 @@ import SongDetailPage from "@/features/songs/pages/SongDetailPage";
 import SongsPage from "@/features/songs/pages/SongsPage";
 import UserDetailsPage from "@/features/users/pages/UserDetailsPage";
 import UsersAdminPage from "@/features/users/pages/UsersAdminPage";
+import { APP_NAME } from "@/lib/constants";
 
 function LandingPage() {
   const features = [
@@ -60,7 +65,7 @@ function LandingPage() {
         <div className="grid items-center gap-8 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-brand-700">
-              <Sparkles className="h-3.5 w-3.5" /> Les aadorateurs
+              <Sparkles className="h-3.5 w-3.5" /> {APP_NAME}
             </p>
             <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-900 dark:text-white sm:text-5xl">
               Organisez les chants, unissez les voix, servez avec excellence.
@@ -160,18 +165,30 @@ export function AppRouter() {
       path: "/",
       element: <AppLayout />,
       children: [
-        { index: true, element: <LandingPage /> },
-        { path: "login", element: <LoginPage /> },
-        { path: "register", element: <RegisterPage /> },
-        { path: "chants", element: <SongsPage /> },
-        { path: "chants/:id", element: <SongDetailPage /> },
         {
-          element: <ProtectedRoute />,
+          element: <AdminSessionLockRoute />,
           children: [
-            { path: "favoris", element: <FavoritesPage /> },
-            { path: "profil", element: <ProfilePage /> },
+            { index: true, element: <LandingPage /> },
+            { path: "chants", element: <SongsPage /> },
+            { path: "chants/:id", element: <SongDetailPage /> },
+            {
+              element: <ProtectedRoute />,
+              children: [
+                { path: "favoris", element: <FavoritesPage /> },
+                { path: "profil", element: <ProfilePage /> },
+              ],
+            },
           ],
         },
+        {
+          element: <GuestRoute />,
+          children: [
+            { path: "login", element: <LoginPage /> },
+            { path: "register", element: <RegisterPage /> },
+            { path: "forgot-password", element: <ForgotPasswordPage /> },
+          ],
+        },
+        { path: "reset-password", element: <ResetPasswordPage /> },
       ],
     },
     {
@@ -214,3 +231,4 @@ export function AppRouter() {
     { path: "*", element: <NotFoundPage /> },
   ]);
 }
+

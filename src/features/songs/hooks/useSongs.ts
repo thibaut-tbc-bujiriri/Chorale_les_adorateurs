@@ -1,4 +1,4 @@
-﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -11,6 +11,7 @@ export function useSongs(filters?: Partial<SongFilters> & { search?: string }) {
   const songsQuery = useQuery({
     queryKey: [...queryKeys.songs, filters ?? {}],
     queryFn: () => songsService.getAll(filters),
+    placeholderData: keepPreviousData,
   });
 
   const createSong = useMutation({
