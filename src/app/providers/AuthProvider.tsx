@@ -1,7 +1,7 @@
 ﻿import { createContext, type PropsWithChildren, useEffect, useMemo, useState } from "react";
 
 import { authService } from "@/features/auth/services/auth.service";
-import type { AuthContextValue, AuthUser, LoginInput } from "@/features/auth/types/auth.types";
+import type { AuthContextValue, AuthUser, LoginInput, RegisterInput } from "@/features/auth/types/auth.types";
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -47,13 +47,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setUser(loggedUser);
   };
 
+  const register = async (input: RegisterInput) => {
+    await authService.register(input);
+  };
+
   const logout = async () => {
     await authService.logout();
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ user, loading, login, logout }),
+    () => ({ user, loading, login, register, logout }),
     [user, loading],
   );
 

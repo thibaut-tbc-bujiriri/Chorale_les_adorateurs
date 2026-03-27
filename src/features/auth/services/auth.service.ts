@@ -1,6 +1,6 @@
 ﻿import { supabase } from "@/lib/supabase";
 
-import type { AuthUser, LoginInput } from "../types/auth.types";
+import type { AuthUser, LoginInput, RegisterInput } from "../types/auth.types";
 
 interface ProfileRow {
   id: string;
@@ -8,6 +8,10 @@ interface ProfileRow {
   full_name: string;
   role: "super_admin" | "maitre_chant" | "discipline_admin" | "choriste";
   choir_voice: "Soprano" | "Alto" | "Ténor" | "Basse";
+}
+
+interface AuthErrorLike {
+  message?: string;
 }
 
 function mapProfileToAuthUser(profile: ProfileRow): AuthUser {
@@ -20,9 +24,9 @@ function mapProfileToAuthUser(profile: ProfileRow): AuthUser {
   };
 }
 
-function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 6000): Promise<T> {
+function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 8000): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Délai de connexion dépassé")), timeoutMs);
+    const timeout = setTimeout(() => reject(new Error("TIMEOUT")), timeoutMs);
     Promise.resolve(promise)
       .then((value) => {
         clearTimeout(timeout);
@@ -33,6 +37,14 @@ function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 6000): Promise<T> {
         reject(error);
       });
   });
+}
+
+function normalizeAuthError(error: unknown, fallback = "Connexion impossible. Vérifiez vos informations.") {
+  const message = (error as AuthErrorLike)?.message ?? "";
+  if (message.includes("TIMEOUT")) return "Connexion impossible pour le moment. Réessayez.";
+  if (message.includes("Invalid login credentials")) return "Email ou mot de passe incorrect.";
+  if (message.includes("Email not confirmed")) return "Veuillez confirmer votre email avant de vous connecter.";
+  return message || fallback;
 }
 
 async function getProfile(userId: string): Promise<AuthUser> {
@@ -55,23 +67,60 @@ async function getProfile(userId: string): Promise<AuthUser> {
 
 async function login(input: LoginInput): Promise<AuthUser> {
   const authClient = supabase.auth as any;
-  const response = await withTimeout(
-    authClient.signInWithPassword({
-      email: input.identifier,
-      password: input.password,
-    }),
-  );
 
-  const { data, error } = response as {
-    data: { user: { id: string } | null };
-    error: { message: string } | null;
-  };
+  try {
+    const response = await withTimeout(
+      authClient.signInWithPassword({
+        email: input.identifier,
+        password: input.password,
+      }),
+    );
 
-  if (error || !data.user) {
-    throw new Error(error?.message ?? "Connexion impossible");
+    const { data, error } = response as {
+      data: { user: { id: string } | null };
+      error: { message: string } | null;
+    };
+
+    if (error || !data.user) {
+      throw new Error(error?.message ?? "Connexion impossible");
+    }
+
+    return getProfile(data.user.id);
+  } catch (error) {
+    throw new Error(normalizeAuthError(error));
   }
+}
 
-  return getProfile(data.user.id);
+async function register(input: RegisterInput): Promise<void> {
+  const authClient = supabase.auth as any;
+
+  try {
+    const response = await withTimeout(
+      authClient.signUp({
+        email: input.email,
+        password: input.password,
+        options: {
+          data: {
+            full_name: input.fullName,
+            role: "choriste",
+            choir_voice: input.choirVoice ?? "Soprano",
+          },
+        },
+      }),
+    );
+
+    const { error } = response as { error: { message: string } | null };
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    const message = normalizeAuthError(error, "Inscription impossible. Réessayez.");
+    if (message.includes("User already registered")) {
+      throw new Error("Cet email est déjà utilisé.");
+    }
+    throw new Error(message);
+  }
 }
 
 async function logout() {
@@ -86,17 +135,22 @@ async function logout() {
 
 async function getCurrentUser(): Promise<AuthUser | null> {
   const authClient = supabase.auth as any;
-  const response = await withTimeout(authClient.getSession());
 
-  const {
-    data: { session },
-  } = response as {
-    data: { session: { user?: { id: string } } | null };
-  };
+  try {
+    const response = await withTimeout(authClient.getSession());
 
-  if (!session?.user) return null;
+    const {
+      data: { session },
+    } = response as {
+      data: { session: { user?: { id: string } } | null };
+    };
 
-  return getProfile(session.user.id);
+    if (!session?.user) return null;
+
+    return getProfile(session.user.id);
+  } catch {
+    return null;
+  }
 }
 
 function onAuthStateChange(callback: (user: AuthUser | null) => void) {
@@ -122,6 +176,7 @@ function onAuthStateChange(callback: (user: AuthUser | null) => void) {
 
 export const authService = {
   login,
+  register,
   logout,
   getCurrentUser,
   onAuthStateChange,

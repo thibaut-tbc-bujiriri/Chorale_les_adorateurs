@@ -1,7 +1,7 @@
 ﻿import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { Button } from "@/components/common/Button";
@@ -47,9 +47,7 @@ export default function LoginPage() {
   return (
     <section className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-800 dark:bg-slate-900">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Connexion</h1>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-        Connectez-vous avec votre compte Supabase existant (email + mot de passe).
-      </p>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Connectez-vous pour accéder à votre espace.</p>
 
       <form className="mt-5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <Input label="Email" type="email" {...register("identifier")} error={errors.identifier?.message} />
@@ -61,6 +59,13 @@ export default function LoginPage() {
           Se connecter
         </Button>
       </form>
+
+      <p className="mt-4 text-center text-sm text-slate-600 dark:text-slate-300">
+        Pas encore de compte ?{" "}
+        <Link to="/register" className="font-medium text-brand-700 hover:underline dark:text-brand-300">
+          S'inscrire
+        </Link>
+      </p>
     </section>
   );
 }

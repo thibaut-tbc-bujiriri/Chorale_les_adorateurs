@@ -1,13 +1,16 @@
-﻿import { NavLink } from "react-router-dom";
-import { X } from "lucide-react";
+﻿import { LogOut, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/common/Button";
+import { useUiStore } from "@/app/store/ui.store";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { publicNavItems } from "@/lib/constants";
-import { useUiStore } from "@/app/store/ui.store";
 
 export function MobileNav() {
   const { isMobileNavOpen, closeMobileNav } = useUiStore();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { canAccessAdmin, canManageCategories, canManageSongs, canManageUsers } = useRole();
 
   if (!isMobileNavOpen) return null;
@@ -15,7 +18,7 @@ export function MobileNav() {
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 md:hidden" onClick={closeMobileNav}>
       <div
-        className="ml-auto h-full w-[85vw] max-w-xs bg-white p-4 dark:bg-slate-950"
+        className="ml-auto h-full w-[85vw] max-w-xs overflow-y-auto bg-white p-4 dark:bg-slate-950"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -78,7 +81,21 @@ export function MobileNav() {
           ) : null}
         </div>
 
-        <Button className="mt-6 w-full" onClick={closeMobileNav} variant="secondary">
+        {user ? (
+          <Button
+            className="mt-6 w-full"
+            variant="ghost"
+            onClick={async () => {
+              await logout();
+              closeMobileNav();
+              navigate("/");
+            }}
+          >
+            <LogOut className="h-4 w-4" /> Déconnexion
+          </Button>
+        ) : null}
+
+        <Button className="mt-2 w-full" onClick={closeMobileNav} variant="secondary">
           Fermer
         </Button>
       </div>

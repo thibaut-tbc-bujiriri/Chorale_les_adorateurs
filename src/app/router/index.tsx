@@ -15,6 +15,7 @@ import { Button } from "@/components/common/Button";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
 import CategoriesAdminPage from "@/features/categories/pages/CategoriesAdminPage";
 import AdminDashboardPage from "@/features/dashboard/pages/AdminDashboardPage";
 import FavoritesPage from "@/features/favorites/pages/FavoritesPage";
@@ -126,7 +127,7 @@ function LandingPage() {
         <Music4 className="mx-auto h-6 w-6" />
         <h2 className="mt-2 text-2xl font-semibold">Prêt à harmoniser votre chorale ?</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-brand-100">
-          Connectez-vous avec un profil démo et explorez immédiatement toutes les fonctionnalités frontend.
+          Connectez-vous et explorez immédiatement toutes les fonctionnalités de la chorale.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-3">
           <Link to="/login" className="w-full sm:w-auto">
@@ -161,6 +162,7 @@ export function AppRouter() {
       children: [
         { index: true, element: <LandingPage /> },
         { path: "login", element: <LoginPage /> },
+        { path: "register", element: <RegisterPage /> },
         { path: "chants", element: <SongsPage /> },
         { path: "chants/:id", element: <SongDetailPage /> },
         {

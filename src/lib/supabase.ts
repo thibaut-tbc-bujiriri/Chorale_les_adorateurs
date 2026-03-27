@@ -26,6 +26,7 @@ export const supabase = createClient(
 export function createIsolatedSupabaseClient() {
   return createClient(supabaseUrl || fallbackUrl, supabaseAnonKey || fallbackAnonKey, {
     auth: {
+      storageKey: `chorale_auth_isolated_${crypto.randomUUID()}`,
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false,
