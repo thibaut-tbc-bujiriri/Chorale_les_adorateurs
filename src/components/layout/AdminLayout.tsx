@@ -11,7 +11,7 @@ export function AdminLayout() {
       <MobileNav />
       <div className="mx-auto flex max-w-7xl">
         <Sidebar />
-        <main className="w-full p-4 sm:p-6">
+        <main className="w-full p-3 sm:p-6">
           <Outlet />
         </main>
       </div>

@@ -8,14 +8,14 @@ import { useUiStore } from "@/app/store/ui.store";
 
 export function MobileNav() {
   const { isMobileNavOpen, closeMobileNav } = useUiStore();
-  const { canAccessAdmin } = useRole();
+  const { canAccessAdmin, canManageCategories, canManageSongs, canManageUsers } = useRole();
 
   if (!isMobileNavOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 md:hidden" onClick={closeMobileNav}>
       <div
-        className="ml-auto h-full w-72 bg-white p-4 dark:bg-slate-950"
+        className="ml-auto h-full w-[85vw] max-w-xs bg-white p-4 dark:bg-slate-950"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
@@ -24,6 +24,7 @@ export function MobileNav() {
             <X className="h-5 w-5 text-slate-500" />
           </button>
         </div>
+
         <div className="space-y-2">
           {publicNavItems.map((item) => (
             <NavLink
@@ -35,16 +36,48 @@ export function MobileNav() {
               {item.label}
             </NavLink>
           ))}
+
           {canAccessAdmin ? (
-            <NavLink
-              to="/admin/dashboard"
-              onClick={closeMobileNav}
-              className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-            >
-              Espace admin
-            </NavLink>
+            <div className="mt-2 border-t border-slate-200 pt-2 dark:border-slate-800">
+              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Administration</p>
+              <NavLink
+                to="/admin/dashboard"
+                onClick={closeMobileNav}
+                className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Dashboard
+              </NavLink>
+              {canManageSongs ? (
+                <NavLink
+                  to="/admin/chants"
+                  onClick={closeMobileNav}
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Chants
+                </NavLink>
+              ) : null}
+              {canManageCategories ? (
+                <NavLink
+                  to="/admin/categories"
+                  onClick={closeMobileNav}
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Catégories
+                </NavLink>
+              ) : null}
+              {canManageUsers ? (
+                <NavLink
+                  to="/admin/utilisateurs"
+                  onClick={closeMobileNav}
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  Utilisateurs
+                </NavLink>
+              ) : null}
+            </div>
           ) : null}
         </div>
+
         <Button className="mt-6 w-full" onClick={closeMobileNav} variant="secondary">
           Fermer
         </Button>

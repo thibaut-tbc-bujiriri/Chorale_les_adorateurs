@@ -16,7 +16,7 @@ export default function AdminSongsPage() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Gestion des chants</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Ajoutez, modifiez ou supprimez les chants disponibles.</p>
@@ -27,8 +27,28 @@ export default function AdminSongsPage() {
       </div>
 
       {songsQuery.data?.length ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <table className="min-w-full text-sm">
+        <div className="space-y-3">
+          <div className="grid gap-3 md:hidden">
+            {songsQuery.data.map((song) => (
+              <article key={song.id} className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <p className="text-xs text-slate-500">N° {song.number}</p>
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{song.title}</h3>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{song.author}</p>
+                <p className="mt-1 text-xs text-slate-500">{song.category}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link to={`/admin/chants/${song.id}/edit`}>
+                    <Button variant="secondary">Modifier</Button>
+                  </Link>
+                  <Button variant="danger" onClick={() => setSelectedSong(song)}>
+                    Supprimer
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-2xl border border-slate-200 bg-white md:block dark:border-slate-800 dark:bg-slate-900">
+          <table className="min-w-[760px] text-sm">
             <thead className="bg-slate-50 text-left text-slate-600 dark:bg-slate-800/70 dark:text-slate-300">
               <tr>
                 <th className="px-4 py-3">Numéro</th>
@@ -59,6 +79,7 @@ export default function AdminSongsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       ) : (
         <EmptyState title="Aucun chant" description="Créez votre premier chant depuis l'espace admin." />

@@ -71,7 +71,7 @@ export default function UsersAdminPage() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Gestion des utilisateurs</h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">Gérez les profils et les rôles de la chorale.</p>

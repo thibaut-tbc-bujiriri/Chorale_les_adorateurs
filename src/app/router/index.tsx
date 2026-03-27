@@ -54,14 +54,14 @@ function LandingPage() {
   ];
 
   return (
-    <div className="space-y-16 pb-8">
-      <section className="overflow-hidden rounded-3xl border border-brand-100 bg-halo p-8 shadow-soft dark:border-brand-900/30 md:p-12">
+    <div className="space-y-10 pb-8 sm:space-y-16">
+      <section className="overflow-hidden rounded-3xl border border-brand-100 bg-halo p-5 shadow-soft dark:border-brand-900/30 sm:p-8 md:p-12">
         <div className="grid items-center gap-8 lg:grid-cols-2">
           <div>
             <p className="inline-flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-brand-700">
-              <Sparkles className="h-3.5 w-3.5" /> Chorale digitale moderne
+              <Sparkles className="h-3.5 w-3.5" /> Les aadorateurs
             </p>
-            <h1 className="mt-4 text-4xl font-bold leading-tight text-slate-900 dark:text-white sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-900 dark:text-white sm:text-5xl">
               Organisez les chants, unissez les voix, servez avec excellence.
             </h1>
             <p className="mt-4 max-w-xl text-base text-slate-700 dark:text-slate-200">
@@ -69,11 +69,11 @@ function LandingPage() {
               l'administration de la chorale avec sérénité.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/login">
-                <Button>Se connecter</Button>
+              <Link to="/login" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">Se connecter</Button>
               </Link>
-              <Link to="/chants">
-                <Button variant="secondary">Voir les chants</Button>
+              <Link to="/chants" className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto">Voir les chants</Button>
               </Link>
             </div>
           </div>
@@ -122,18 +122,18 @@ function LandingPage() {
         </ul>
       </section>
 
-      <section className="rounded-2xl bg-brand-700 px-6 py-8 text-center text-white">
+      <section className="rounded-2xl bg-brand-700 px-4 py-8 text-center text-white sm:px-6">
         <Music4 className="mx-auto h-6 w-6" />
         <h2 className="mt-2 text-2xl font-semibold">Prêt à harmoniser votre chorale ?</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-brand-100">
           Connectez-vous avec un profil démo et explorez immédiatement toutes les fonctionnalités frontend.
         </p>
-        <div className="mt-5 flex justify-center gap-3">
-          <Link to="/login">
-            <Button variant="secondary">Se connecter</Button>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <Link to="/login" className="w-full sm:w-auto">
+            <Button variant="secondary" className="w-full sm:w-auto">Se connecter</Button>
           </Link>
-          <Link to="/chants">
-            <Button className="bg-white text-brand-700 hover:bg-brand-50">Voir les chants</Button>
+          <Link to="/chants" className="w-full sm:w-auto">
+            <Button className="w-full bg-white text-brand-700 hover:bg-brand-50 sm:w-auto">Voir les chants</Button>
           </Link>
         </div>
       </section>
