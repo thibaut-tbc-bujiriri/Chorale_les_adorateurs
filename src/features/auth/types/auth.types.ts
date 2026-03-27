@@ -1,0 +1,22 @@
+﻿import type { Role } from "@/types/role";
+
+export interface AuthUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: Role;
+  choirVoice: "Soprano" | "Alto" | "Ténor" | "Basse";
+  avatar?: string;
+}
+
+export interface LoginInput {
+  identifier: string;
+  password: string;
+}
+
+export interface AuthContextValue {
+  user: AuthUser | null;
+  loading: boolean;
+  login: (input: LoginInput) => Promise<void>;
+  logout: () => Promise<void>;
+}
