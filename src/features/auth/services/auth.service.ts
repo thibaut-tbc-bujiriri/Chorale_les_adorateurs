@@ -16,6 +16,7 @@ interface AuthErrorLike {
 
 const AUTH_LOCK_STEAL_TEXT = "was released because another request stole it";
 const PASSWORD_DIFFERENT_TEXT = "New password should be different from the old password";
+const AUTH_USER_CACHE_KEY = "chorale_auth_user_cache_v1";
 
 function mapProfileToAuthUser(profile: ProfileRow): AuthUser {
   return {
@@ -25,6 +26,36 @@ function mapProfileToAuthUser(profile: ProfileRow): AuthUser {
     role: profile.role,
     choirVoice: profile.choir_voice,
   };
+}
+
+function cacheAuthUser(user: AuthUser) {
+  try {
+    localStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(user));
+  } catch {
+    // Ignore storage errors (private mode, quota, etc.).
+  }
+}
+
+function clearCachedAuthUser() {
+  try {
+    localStorage.removeItem(AUTH_USER_CACHE_KEY);
+  } catch {
+    // Ignore storage errors.
+  }
+}
+
+function getCachedAuthUser(): AuthUser | null {
+  try {
+    const raw = localStorage.getItem(AUTH_USER_CACHE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as AuthUser;
+    if (!parsed?.id || !parsed?.role || !parsed?.email) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 8000): Promise<T> {
@@ -106,7 +137,9 @@ async function getProfile(userId: string): Promise<AuthUser> {
     throw new Error(error?.message ?? "Profil introuvable.");
   }
 
-  return mapProfileToAuthUser(profile);
+  const mapped = mapProfileToAuthUser(profile);
+  cacheAuthUser(mapped);
+  return mapped;
 }
 
 async function login(input: LoginInput): Promise<AuthUser> {
@@ -175,6 +208,8 @@ async function logout() {
   if (error) {
     throw new Error(error.message);
   }
+
+  clearCachedAuthUser();
 }
 
 async function requestPasswordReset(email: string) {
@@ -238,11 +273,22 @@ async function getCurrentUser(): Promise<AuthUser | null> {
       data: { session: { user?: { id: string } } | null };
     };
 
-    if (!session?.user) return null;
+    if (!session?.user) {
+      clearCachedAuthUser();
+      return null;
+    }
 
-    return getProfile(session.user.id);
+    try {
+      return await getProfile(session.user.id);
+    } catch {
+      const cachedUser = getCachedAuthUser();
+      if (cachedUser?.id === session.user.id) {
+        return cachedUser;
+      }
+      return null;
+    }
   } catch {
-    return null;
+    return getCachedAuthUser();
   }
 }
 
@@ -250,8 +296,9 @@ function onAuthStateChange(callback: (user: AuthUser | null) => void) {
   const authClient = supabase.auth as any;
   const {
     data: { subscription },
-  } = authClient.onAuthStateChange(async (_event: string, session: { user?: { id: string } } | null) => {
+  } = authClient.onAuthStateChange(async (event: string, session: { user?: { id: string } } | null) => {
     if (!session?.user) {
+      clearCachedAuthUser();
       callback(null);
       return;
     }
@@ -260,7 +307,15 @@ function onAuthStateChange(callback: (user: AuthUser | null) => void) {
       const profile = await getProfile(session.user.id);
       callback(profile);
     } catch {
-      callback(null);
+      const cachedUser = getCachedAuthUser();
+      if (cachedUser?.id === session.user.id) {
+        callback(cachedUser);
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        callback(null);
+      }
     }
   });
 
@@ -274,5 +329,6 @@ export const authService = {
   resetPassword,
   logout,
   getCurrentUser,
+  getCachedAuthUser,
   onAuthStateChange,
 };

@@ -41,6 +41,13 @@ export function MobileNav() {
             >
               Favoris
             </NavLink>
+            <NavLink
+              to="/profil"
+              onClick={closeMobileNav}
+              className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Profil
+            </NavLink>
             {canAccessAdmin ? (
               <NavLink
                 to="/admin/dashboard"

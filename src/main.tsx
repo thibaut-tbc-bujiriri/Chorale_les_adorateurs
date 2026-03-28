@@ -1,5 +1,4 @@
-﻿import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+﻿import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import { AuthProvider } from "@/app/providers/AuthProvider";
@@ -18,16 +17,14 @@ if (import.meta.env.DEV && "serviceWorker" in navigator) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <QueryProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <InstallPrompt />
-            <AppRouter />
-          </BrowserRouter>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryProvider>
-  </StrictMode>,
+  <QueryProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <InstallPrompt />
+          <AppRouter />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
+  </QueryProvider>,
 );

@@ -6,8 +6,9 @@ import type { AuthContextValue, AuthUser, LoginInput, RegisterInput } from "@/fe
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initialCachedUser = authService.getCachedAuthUser();
+  const [user, setUser] = useState<AuthUser | null>(initialCachedUser);
+  const [loading, setLoading] = useState(() => !initialCachedUser);
 
   useEffect(() => {
     let isMounted = true;
@@ -15,7 +16,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     const safetyTimeout = setTimeout(() => {
       if (!isMounted) return;
       setLoading(false);
-    }, 7000);
+    }, 4000);
 
     authService
       .getCurrentUser()
@@ -23,7 +24,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         if (isMounted) setUser(currentUser);
       })
       .catch(() => {
-        if (isMounted) setUser(null);
+        if (!isMounted) return;
+        setUser((previous) => previous ?? authService.getCachedAuthUser());
       })
       .finally(() => {
         if (isMounted) setLoading(false);

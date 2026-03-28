@@ -3,12 +3,14 @@
 import { Button } from "@/components/common/Button";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useFavorites } from "@/features/favorites/hooks/useFavorites";
+import { cn } from "@/lib/utils";
 
 interface FavoriteButtonProps {
   songId: string;
+  className?: string;
 }
 
-export function FavoriteButton({ songId }: FavoriteButtonProps) {
+export function FavoriteButton({ songId, className }: FavoriteButtonProps) {
   const { user } = useAuth();
   const { favoritesQuery, toggleFavorite } = useFavorites(user?.id);
 
@@ -18,7 +20,8 @@ export function FavoriteButton({ songId }: FavoriteButtonProps) {
 
   return (
     <Button
-      variant={isFavorite ? "secondary" : "ghost"}
+      variant="secondary"
+      className={cn("justify-center whitespace-nowrap", className)}
       onClick={() => toggleFavorite.mutate(songId)}
       isLoading={toggleFavorite.isPending}
     >

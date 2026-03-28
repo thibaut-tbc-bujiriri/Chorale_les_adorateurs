@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+﻿import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { Loader } from "@/components/common/Loader";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -9,10 +9,11 @@ const ADMIN_LOCKED_PUBLIC_PATHS = new Set(["/", "/login", "/register", "/forgot-
 export function AdminSessionLockRoute() {
   const { user, loading } = useAuth();
   const location = useLocation();
+  const isPublicPath = ADMIN_LOCKED_PUBLIC_PATHS.has(location.pathname);
 
-  if (loading) return <Loader label="Vérification de la session..." />;
+  if (loading && !isPublicPath) return <Loader label="Verification de la session..." />;
 
-  if (user && canAccessAdminPanel(user.role) && ADMIN_LOCKED_PUBLIC_PATHS.has(location.pathname)) {
+  if (user && canAccessAdminPanel(user.role) && isPublicPath) {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
