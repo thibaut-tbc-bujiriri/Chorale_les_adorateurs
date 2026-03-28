@@ -11,7 +11,6 @@ export const DEMO_PASSWORD = "chorale123";
 export const publicNavItems: NavItem[] = [
   { label: "Accueil", to: "/" },
   { label: "Chants", to: "/chants" },
-  { label: "Favoris", to: "/favoris" },
 ];
 
 export const voiceOptions = ["Soprano", "Alto", "Ténor", "Basse"] as const;

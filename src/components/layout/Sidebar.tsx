@@ -1,10 +1,11 @@
 ﻿import { NavLink } from "react-router-dom";
-import { LayoutDashboard, ListMusic, Tags, Users } from "lucide-react";
+import { Heart, LayoutDashboard, ListMusic, Tags, Users } from "lucide-react";
 
 import { useRole } from "@/hooks/useRole";
 
 const links = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, permission: "canAccessAdmin" as const },
+  { to: "/favoris", label: "Favoris", icon: Heart, permission: "canAccessAdmin" as const },
   { to: "/admin/chants", label: "Chants", icon: ListMusic, permission: "canManageSongs" as const },
   { to: "/admin/categories", label: "Catégories", icon: Tags, permission: "canManageCategories" as const },
   { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, permission: "canManageUsers" as const },

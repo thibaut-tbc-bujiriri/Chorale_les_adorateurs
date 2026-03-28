@@ -6,6 +6,7 @@
   Sparkles,
   Users,
 } from "lucide-react";
+import { useMemo } from "react";
 import { Link, Navigate, useRoutes } from "react-router-dom";
 
 import { AdminRoute } from "@/app/router/AdminRoute";
@@ -13,6 +14,7 @@ import { AdminSessionLockRoute } from "@/app/router/AdminSessionLockRoute";
 import { GuestRoute } from "@/app/router/GuestRoute";
 import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import { RoleGuard } from "@/app/router/RoleGuard";
+import { useUiStore } from "@/app/store/ui.store";
 import { Button } from "@/components/common/Button";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
@@ -32,6 +34,34 @@ import SongsPage from "@/features/songs/pages/SongsPage";
 import UserDetailsPage from "@/features/users/pages/UserDetailsPage";
 import UsersAdminPage from "@/features/users/pages/UsersAdminPage";
 import { APP_NAME } from "@/lib/constants";
+
+function IntroGate() {
+  const { hasIntroStarted, startIntro } = useUiStore();
+
+  const versionLabel = useMemo(() => import.meta.env.VITE_APP_VERSION ?? "Version 1.0.0", []);
+
+  if (!hasIntroStarted) {
+    return (
+      <section className="relative flex min-h-[calc(100dvh-73px)] w-full items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/roberts.webp')] bg-cover bg-center" />
+        <div className="absolute inset-0 bg-sky-200/70 backdrop-blur-[2px]" />
+        <article className="relative z-10 w-full max-w-3xl px-6 py-10 text-center">
+          <h1 className="mx-auto inline-block w-[14ch] overflow-hidden whitespace-nowrap border-r-2 border-white text-4xl font-bold text-white [animation:typing_2.2s_steps(14,end),blink_0.9s_step-end_infinite] sm:text-7xl">
+            Les adorateurs
+          </h1>
+          <p className="mt-6 text-sm font-medium uppercase tracking-[0.2em] text-white/90 sm:text-lg">
+            {versionLabel}
+          </p>
+          <Button className="mt-8 min-w-40 border border-white/80 bg-white/10 text-white backdrop-blur hover:bg-white/20" onClick={startIntro}>
+            Continuer
+          </Button>
+        </article>
+      </section>
+    );
+  }
+
+  return <LandingPage />;
+}
 
 function LandingPage() {
   const features = [
@@ -168,7 +198,7 @@ export function AppRouter() {
         {
           element: <AdminSessionLockRoute />,
           children: [
-            { index: true, element: <LandingPage /> },
+            { index: true, element: <IntroGate /> },
             { path: "chants", element: <SongsPage /> },
             { path: "chants/:id", element: <SongDetailPage /> },
             {

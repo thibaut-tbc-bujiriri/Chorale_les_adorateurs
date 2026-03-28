@@ -1,5 +1,5 @@
 ﻿import { BarChart3, BookOpen, Star, Users } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Loader } from "@/components/common/Loader";
 import { useCategories } from "@/features/categories/hooks/useCategories";
@@ -10,20 +10,17 @@ export default function AdminDashboardPage() {
   const { songsQuery } = useSongs();
   const { categoriesQuery } = useCategories();
   const { usersQuery } = useUsers();
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const songs = songsQuery.data ?? [];
+  const categories = categoriesQuery.data ?? [];
+  const users = usersQuery.data ?? [];
 
   const totalFavorites = useMemo(() => {
     const raw = localStorage.getItem("chorale_favorites");
     if (!raw) return 0;
     return (JSON.parse(raw) as Array<{ id: string }>).length;
   }, []);
-
-  if (songsQuery.isLoading || categoriesQuery.isLoading || usersQuery.isLoading) {
-    return <Loader label="Chargement du dashboard..." />;
-  }
-
-  const songs = songsQuery.data ?? [];
-  const categories = categoriesQuery.data ?? [];
-  const users = usersQuery.data ?? [];
 
   const byCategory = categories
     .map((category) => ({
@@ -32,7 +29,21 @@ export default function AdminDashboardPage() {
     }))
     .sort((a, b) => b.count - a.count);
 
+  useEffect(() => {
+    if (!byCategory.length) {
+      if (selectedCategory) setSelectedCategory("");
+      return;
+    }
+
+    const hasSelectedCategory = byCategory.some((item) => item.category === selectedCategory);
+    if (!selectedCategory || !hasSelectedCategory) {
+      setSelectedCategory(byCategory[0].category);
+    }
+  }, [byCategory, selectedCategory]);
+
   const latestSongs = [...songs].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 4);
+
+  const songsInSelectedCategory = songs.filter((song) => song.category === selectedCategory);
 
   const cards = [
     { label: "Total chants", value: songs.length, icon: BookOpen },
@@ -40,6 +51,10 @@ export default function AdminDashboardPage() {
     { label: "Total utilisateurs", value: users.length, icon: Users },
     { label: "Total favoris", value: totalFavorites, icon: Star },
   ];
+
+  if (songsQuery.isLoading || categoriesQuery.isLoading || usersQuery.isLoading) {
+    return <Loader label="Chargement du dashboard..." />;
+  }
 
   return (
     <section className="space-y-6">
@@ -76,25 +91,50 @@ export default function AdminDashboardPage() {
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-          <h2 className="text-lg font-semibold">Répartition par catégories</h2>
-          <div className="mt-4 space-y-3">
-            {byCategory.map((item) => (
-              <div key={item.category}>
-                <div className="mb-1 flex justify-between text-sm">
-                  <span>{item.category}</span>
-                  <span>{item.count}</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-brand-500"
-                    style={{ width: `${songs.length ? (item.count / songs.length) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+          <h2 className="text-lg font-semibold">Catégories de chants</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {byCategory.map((item) => {
+              const isActive = item.category === selectedCategory;
+
+              return (
+                <button
+                  key={item.category}
+                  type="button"
+                  onClick={() => setSelectedCategory(item.category)}
+                  className={`rounded-xl border px-4 py-3 text-left transition ${
+                    isActive
+                      ? "border-brand-400 bg-brand-50 text-brand-800 dark:border-brand-500 dark:bg-brand-900/30 dark:text-brand-100"
+                      : "border-slate-200 bg-slate-50 text-slate-700 hover:border-brand-300 hover:bg-brand-50/60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  }`}
+                >
+                  <p className="text-sm font-semibold">{item.category}</p>
+                  <p className="mt-1 text-xs">{item.count} chant(s)</p>
+                </button>
+              );
+            })}
           </div>
         </article>
       </div>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-semibold">Chants de la catégorie: {selectedCategory || "-"}</h2>
+        {selectedCategory ? (
+          songsInSelectedCategory.length ? (
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {songsInSelectedCategory.map((song) => (
+                <li key={song.id} className="rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-800/80">
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{song.title}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">N° {song.number} · {song.author}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Aucun chant trouvé dans cette catégorie.</p>
+          )
+        ) : (
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Choisissez une catégorie pour afficher ses chants.</p>
+        )}
+      </article>
     </section>
   );
 }

@@ -27,3 +27,18 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(69, 143, 103, 0.5) transparent;
 }
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}

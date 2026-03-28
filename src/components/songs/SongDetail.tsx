@@ -1,7 +1,12 @@
-﻿import { FavoriteButton } from "@/components/songs/FavoriteButton";
+﻿import { useState } from "react";
+
+import { Button } from "@/components/common/Button";
+import { FavoriteButton } from "@/components/songs/FavoriteButton";
 import type { Song } from "@/features/songs/types/song.types";
 
 export function SongDetail({ song }: { song: Song }) {
+  const [isReduced, setIsReduced] = useState(false);
+
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -15,9 +20,13 @@ export function SongDetail({ song }: { song: Song }) {
         <FavoriteButton songId={song.id} />
       </div>
 
-      <div className="mt-6 whitespace-pre-line rounded-xl bg-slate-50 p-4 text-[15px] leading-7 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
+      <div className={`mt-6 whitespace-pre-line rounded-xl bg-slate-50 p-4 text-[15px] leading-7 text-slate-800 transition-all dark:bg-slate-950 dark:text-slate-100 ${isReduced ? "line-clamp-6" : ""}`}>
         {song.lyrics}
       </div>
+
+      <Button className="mt-4" variant="secondary" onClick={() => setIsReduced((prev) => !prev)}>
+        {isReduced ? "Afficher tout le détail" : "Réduire le détail"}
+      </Button>
     </article>
   );
 }
