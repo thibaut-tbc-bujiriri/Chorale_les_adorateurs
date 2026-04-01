@@ -1,7 +1,6 @@
 ﻿import { BarChart3, BookOpen, Star, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { Loader } from "@/components/common/Loader";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useSongs } from "@/features/songs/hooks/useSongs";
 import { useUsers } from "@/features/users/hooks/useUsers";
@@ -52,15 +51,14 @@ export default function AdminDashboardPage() {
     { label: "Total favoris", value: totalFavorites, icon: Star },
   ];
 
-  if (songsQuery.isLoading || categoriesQuery.isLoading || usersQuery.isLoading) {
-    return <Loader label="Chargement du dashboard..." />;
-  }
+  const isRefreshing = songsQuery.isFetching || categoriesQuery.isFetching || usersQuery.isFetching;
 
   return (
     <section className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard admin</h1>
         <p className="text-sm text-slate-600 dark:text-slate-300">Vue globale de l'activité de la chorale.</p>
+        {isRefreshing ? <p className="mt-1 text-xs text-slate-500">Actualisation en cours...</p> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

@@ -201,6 +201,7 @@ async function register(input: RegisterInput): Promise<void> {
 }
 
 async function logout() {
+  clearCachedAuthUser();
   const authClient = supabase.auth as any;
   const response = await runWithAuthRetry(() => authClient.signOut());
   const { error } = response as { error: { message: string } | null };
@@ -208,8 +209,6 @@ async function logout() {
   if (error) {
     throw new Error(error.message);
   }
-
-  clearCachedAuthUser();
 }
 
 async function requestPasswordReset(email: string) {

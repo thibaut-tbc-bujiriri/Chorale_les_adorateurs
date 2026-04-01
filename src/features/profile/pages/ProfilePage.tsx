@@ -1,5 +1,4 @@
-﻿import { Loader } from "@/components/common/Loader";
-import { RoleBadge } from "@/components/users/RoleBadge";
+﻿import { RoleBadge } from "@/components/users/RoleBadge";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useFavorites } from "@/features/favorites/hooks/useFavorites";
 
@@ -8,7 +7,6 @@ export default function ProfilePage() {
   const { favoritesQuery } = useFavorites(user?.id);
 
   if (!user) return null;
-  if (favoritesQuery.isLoading) return <Loader label="Chargement du profil..." />;
 
   return (
     <section className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">

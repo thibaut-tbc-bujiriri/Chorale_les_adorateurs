@@ -65,8 +65,8 @@ export function Navbar() {
               </div>
               <Button
                 variant="ghost"
-                onClick={async () => {
-                  await logout();
+                onClick={() => {
+                  void logout();
                   navigate("/");
                 }}
               >

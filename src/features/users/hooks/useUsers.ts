@@ -1,4 +1,4 @@
-﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -11,6 +11,7 @@ export function useUsers() {
   const usersQuery = useQuery({
     queryKey: queryKeys.users,
     queryFn: usersService.getAll,
+    placeholderData: keepPreviousData,
   });
 
   const createUser = useMutation({

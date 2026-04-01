@@ -62,8 +62,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const logout = async () => {
-    await authService.logout();
     setUser(null);
+    setLoading(false);
+    void authService.logout().catch(() => {
+      // UI logout remains immediate even if network sign-out fails.
+    });
   };
 
   const value = useMemo(

@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/common/Button";
-import { Loader } from "@/components/common/Loader";
 import { SongFilters } from "@/components/songs/SongFilters";
 import { SongList } from "@/components/songs/SongList";
 import { SongSearchBar } from "@/components/songs/SongSearchBar";
@@ -49,10 +48,6 @@ export default function SongsPage() {
     const firstFive = songs.slice(0, 5);
     return filterSongsForGuest(firstFive, debouncedSearch, filters);
   }, [isGuest, songs, debouncedSearch, filters]);
-
-  if ((songsQuery.isPending && !songsQuery.data) || categoriesQuery.isLoading) {
-    return <Loader label="Chargement des chants..." />;
-  }
 
   return (
     <section className="space-y-4">

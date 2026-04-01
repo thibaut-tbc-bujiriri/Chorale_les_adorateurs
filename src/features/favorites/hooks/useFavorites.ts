@@ -1,4 +1,4 @@
-﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -11,6 +11,7 @@ export function useFavorites(userId?: string) {
     queryKey: queryKeys.favorites(userId),
     queryFn: () => favoritesService.getByUser(userId ?? ""),
     enabled: Boolean(userId),
+    placeholderData: keepPreviousData,
   });
 
   const toggleFavorite = useMutation({

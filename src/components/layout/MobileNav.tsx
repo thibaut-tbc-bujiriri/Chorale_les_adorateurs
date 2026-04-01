@@ -91,8 +91,8 @@ export function MobileNav() {
           <Button
             className="mt-6 w-full"
             variant="ghost"
-            onClick={async () => {
-              await logout();
+            onClick={() => {
+              void logout();
               closeMobileNav();
               navigate("/");
             }}

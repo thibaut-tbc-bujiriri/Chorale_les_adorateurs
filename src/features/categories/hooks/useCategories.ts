@@ -1,4 +1,4 @@
-﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -10,6 +10,7 @@ export function useCategories() {
   const categoriesQuery = useQuery({
     queryKey: queryKeys.categories,
     queryFn: categoriesService.getAll,
+    placeholderData: keepPreviousData,
   });
 
   const createCategory = useMutation({
