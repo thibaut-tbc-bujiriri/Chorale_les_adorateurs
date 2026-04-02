@@ -52,8 +52,8 @@ function IntroGate() {
         <div className="absolute inset-0 bg-[url('/roberts.webp')] bg-cover bg-center" />
         <div className="absolute inset-0 bg-sky-200/70 backdrop-blur-[2px]" />
         <article className="relative z-10 w-full max-w-3xl px-6 py-10 text-center">
-          <h1 className="mx-auto inline-block w-[14ch] overflow-hidden whitespace-nowrap border-r-2 border-white text-4xl font-bold text-white [animation:typing_2.2s_steps(14,end),blink_0.9s_step-end_infinite] sm:text-7xl">
-            Les adorateurs
+          <h1 className="mx-auto block w-[20ch] overflow-hidden whitespace-nowrap border-r-2 border-white text-center text-4xl font-bold text-white [animation:typing_2.6s_steps(20,end),blink_0.9s_step-end_infinite] sm:text-7xl">
+            Les vrais adorateurs
           </h1>
           <p className="mt-6 text-sm font-medium uppercase tracking-[0.2em] text-white/90 sm:text-lg">
             {versionLabel}
