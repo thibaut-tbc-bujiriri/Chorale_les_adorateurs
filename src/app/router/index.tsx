@@ -6,7 +6,7 @@
   Sparkles,
   Users,
 } from "lucide-react";
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo, type ReactNode } from "react";
 import { Link, Navigate, useRoutes } from "react-router-dom";
 
 import { AdminRoute } from "@/app/router/AdminRoute";
@@ -16,24 +16,30 @@ import { ProtectedRoute } from "@/app/router/ProtectedRoute";
 import { RoleGuard } from "@/app/router/RoleGuard";
 import { useUiStore } from "@/app/store/ui.store";
 import { Button } from "@/components/common/Button";
+import { Loader } from "@/components/common/Loader";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
-import LoginPage from "@/features/auth/pages/LoginPage";
-import RegisterPage from "@/features/auth/pages/RegisterPage";
-import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
-import CategoriesAdminPage from "@/features/categories/pages/CategoriesAdminPage";
-import AdminDashboardPage from "@/features/dashboard/pages/AdminDashboardPage";
-import FavoritesPage from "@/features/favorites/pages/FavoritesPage";
-import ProfilePage from "@/features/profile/pages/ProfilePage";
-import AdminSongsPage from "@/features/songs/pages/AdminSongsPage";
-import CreateSongPage from "@/features/songs/pages/CreateSongPage";
-import EditSongPage from "@/features/songs/pages/EditSongPage";
-import SongDetailPage from "@/features/songs/pages/SongDetailPage";
-import SongsPage from "@/features/songs/pages/SongsPage";
-import UserDetailsPage from "@/features/users/pages/UserDetailsPage";
-import UsersAdminPage from "@/features/users/pages/UsersAdminPage";
 import { APP_NAME } from "@/lib/constants";
+
+const ForgotPasswordPage = lazy(() => import("@/features/auth/pages/ForgotPasswordPage"));
+const LoginPage = lazy(() => import("@/features/auth/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/features/auth/pages/RegisterPage"));
+const ResetPasswordPage = lazy(() => import("@/features/auth/pages/ResetPasswordPage"));
+const CategoriesAdminPage = lazy(() => import("@/features/categories/pages/CategoriesAdminPage"));
+const AdminDashboardPage = lazy(() => import("@/features/dashboard/pages/AdminDashboardPage"));
+const FavoritesPage = lazy(() => import("@/features/favorites/pages/FavoritesPage"));
+const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
+const AdminSongsPage = lazy(() => import("@/features/songs/pages/AdminSongsPage"));
+const CreateSongPage = lazy(() => import("@/features/songs/pages/CreateSongPage"));
+const EditSongPage = lazy(() => import("@/features/songs/pages/EditSongPage"));
+const SongDetailPage = lazy(() => import("@/features/songs/pages/SongDetailPage"));
+const SongsPage = lazy(() => import("@/features/songs/pages/SongsPage"));
+const UserDetailsPage = lazy(() => import("@/features/users/pages/UserDetailsPage"));
+const UsersAdminPage = lazy(() => import("@/features/users/pages/UsersAdminPage"));
+
+function withRouteSuspense(element: ReactNode) {
+  return <Suspense fallback={<Loader label="Chargement..." />}>{element}</Suspense>;
+}
 
 function IntroGate() {
   const { hasIntroStarted, startIntro } = useUiStore();
@@ -199,13 +205,13 @@ export function AppRouter() {
           element: <AdminSessionLockRoute />,
           children: [
             { index: true, element: <IntroGate /> },
-            { path: "chants", element: <SongsPage /> },
-            { path: "chants/:id", element: <SongDetailPage /> },
+            { path: "chants", element: withRouteSuspense(<SongsPage />) },
+            { path: "chants/:id", element: withRouteSuspense(<SongDetailPage />) },
             {
               element: <ProtectedRoute />,
               children: [
-                { path: "favoris", element: <FavoritesPage /> },
-                { path: "profil", element: <ProfilePage /> },
+                { path: "favoris", element: withRouteSuspense(<FavoritesPage />) },
+                { path: "profil", element: withRouteSuspense(<ProfilePage />) },
               ],
             },
           ],
@@ -213,12 +219,12 @@ export function AppRouter() {
         {
           element: <GuestRoute />,
           children: [
-            { path: "login", element: <LoginPage /> },
-            { path: "register", element: <RegisterPage /> },
-            { path: "forgot-password", element: <ForgotPasswordPage /> },
+            { path: "login", element: withRouteSuspense(<LoginPage />) },
+            { path: "register", element: withRouteSuspense(<RegisterPage />) },
+            { path: "forgot-password", element: withRouteSuspense(<ForgotPasswordPage />) },
           ],
         },
-        { path: "reset-password", element: <ResetPasswordPage /> },
+        { path: "reset-password", element: withRouteSuspense(<ResetPasswordPage />) },
       ],
     },
     {
@@ -232,24 +238,24 @@ export function AppRouter() {
               element: <AdminLayout />,
               children: [
                 { index: true, element: <Navigate to="dashboard" replace /> },
-                { path: "dashboard", element: <AdminDashboardPage /> },
+                { path: "dashboard", element: withRouteSuspense(<AdminDashboardPage />) },
                 {
                   element: <RoleGuard allowedRoles={["super_admin", "maitre_chant", "discipline_admin"]} />,
                   children: [
-                    { path: "chants", element: <AdminSongsPage /> },
-                    { path: "chants/new", element: <CreateSongPage /> },
-                    { path: "chants/:id/edit", element: <EditSongPage /> },
+                    { path: "chants", element: withRouteSuspense(<AdminSongsPage />) },
+                    { path: "chants/new", element: withRouteSuspense(<CreateSongPage />) },
+                    { path: "chants/:id/edit", element: withRouteSuspense(<EditSongPage />) },
                   ],
                 },
                 {
                   element: <RoleGuard allowedRoles={["super_admin", "maitre_chant"]} />,
-                  children: [{ path: "categories", element: <CategoriesAdminPage /> }],
+                  children: [{ path: "categories", element: withRouteSuspense(<CategoriesAdminPage />) }],
                 },
                 {
                   element: <RoleGuard allowedRoles={["super_admin"]} />,
                   children: [
-                    { path: "utilisateurs", element: <UsersAdminPage /> },
-                    { path: "utilisateurs/:id", element: <UserDetailsPage /> },
+                    { path: "utilisateurs", element: withRouteSuspense(<UsersAdminPage />) },
+                    { path: "utilisateurs/:id", element: withRouteSuspense(<UserDetailsPage />) },
                   ],
                 },
               ],
@@ -261,4 +267,3 @@ export function AppRouter() {
     { path: "*", element: <NotFoundPage /> },
   ]);
 }
-

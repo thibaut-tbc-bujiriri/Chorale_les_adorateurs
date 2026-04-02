@@ -14,6 +14,12 @@ interface AuthErrorLike {
   message?: string;
 }
 
+interface AuthSessionUser {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}
+
 const AUTH_LOCK_STEAL_TEXT = "was released because another request stole it";
 const PASSWORD_DIFFERENT_TEXT = "New password should be different from the old password";
 const AUTH_USER_CACHE_KEY = "chorale_auth_user_cache_v1";
@@ -56,6 +62,26 @@ function getCachedAuthUser(): AuthUser | null {
   } catch {
     return null;
   }
+}
+
+function mapSessionUserToAuthUser(user: AuthSessionUser): AuthUser | null {
+  const metadata = user.user_metadata ?? {};
+  const fullName = typeof metadata.full_name === "string" ? metadata.full_name : "";
+  const role = typeof metadata.role === "string" ? metadata.role : "";
+  const choirVoice = typeof metadata.choir_voice === "string" ? metadata.choir_voice : "";
+  const email = user.email ?? "";
+
+  if (!fullName || !email) return null;
+  if (!["super_admin", "maitre_chant", "discipline_admin", "choriste"].includes(role)) return null;
+  if (!["Soprano", "Alto", "Ténor", "Basse"].includes(choirVoice)) return null;
+
+  return {
+    id: user.id,
+    email,
+    fullName,
+    role: role as AuthUser["role"],
+    choirVoice: choirVoice as AuthUser["choirVoice"],
+  };
 }
 
 function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = 8000): Promise<T> {
@@ -160,6 +186,23 @@ async function login(input: LoginInput): Promise<AuthUser> {
 
     if (error || !data.user) {
       throw new Error(error?.message ?? "Connexion impossible");
+    }
+
+    const cachedUser = getCachedAuthUser();
+    if (cachedUser?.id === data.user.id) {
+      void getProfile(data.user.id).catch(() => {
+        // Keep fast-path login from cache if profile refresh fails.
+      });
+      return cachedUser;
+    }
+
+    const sessionUser = mapSessionUserToAuthUser(data.user as AuthSessionUser);
+    if (sessionUser) {
+      cacheAuthUser(sessionUser);
+      void getProfile(data.user.id).catch(() => {
+        // Keep fast-path login from session metadata if profile refresh fails.
+      });
+      return sessionUser;
     }
 
     return getProfile(data.user.id);
