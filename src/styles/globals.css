@@ -28,6 +28,15 @@ body {
   scrollbar-color: rgba(69, 143, 103, 0.5) transparent;
 }
 
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes typing {
   from {
     width: 0;

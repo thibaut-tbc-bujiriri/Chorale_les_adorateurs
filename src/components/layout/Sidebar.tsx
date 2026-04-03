@@ -15,7 +15,7 @@ export function Sidebar() {
   const role = useRole();
 
   return (
-    <aside className="hidden min-h-[calc(100vh-4rem)] w-64 border-r border-slate-200 bg-white p-4 lg:block dark:border-slate-800 dark:bg-slate-950">
+    <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-slate-200 bg-white p-4 lg:block dark:border-slate-800 dark:bg-slate-950">
       <p className="px-2 pb-4 text-xs uppercase tracking-wide text-slate-500">Administration</p>
       <nav className="space-y-1">
         {links
