@@ -4,7 +4,7 @@ import { queryKeys } from "@/lib/queryKeys";
 
 import { favoritesService } from "../services/favorites.service";
 
-const FAVORITES_CACHE_PREFIX = "chorale_cache_favorites_v1";
+const FAVORITES_CACHE_PREFIX = "chorale_cache_favorites_v2";
 
 function getFavoritesCacheKey(userId?: string) {
   return `${FAVORITES_CACHE_PREFIX}:${userId ?? "anonymous"}`;
@@ -27,9 +27,14 @@ function writeFavoritesCache(userId: string | undefined, data: Awaited<ReturnTyp
   }
 }
 
-export function useFavorites(userId?: string) {
+interface UseFavoritesOptions {
+  enabled?: boolean;
+}
+
+export function useFavorites(userId?: string, options?: UseFavoritesOptions) {
   const queryClient = useQueryClient();
   const cachedFavorites = readFavoritesCache(userId);
+  const isEnabled = options?.enabled ?? Boolean(userId);
 
   const favoritesQuery = useQuery({
     queryKey: queryKeys.favorites(userId),
@@ -38,15 +43,20 @@ export function useFavorites(userId?: string) {
       writeFavoritesCache(userId, data);
       return data;
     },
-    enabled: Boolean(userId),
+    enabled: isEnabled,
     placeholderData: keepPreviousData,
     initialData: cachedFavorites,
     initialDataUpdatedAt: cachedFavorites ? Date.now() : undefined,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 
   const toggleFavorite = useMutation({
     mutationFn: (songId: string) => favoritesService.toggle(userId ?? "", songId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.favorites(userId) }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.favorites(userId) });
+    },
   });
 
   return { favoritesQuery, toggleFavorite };

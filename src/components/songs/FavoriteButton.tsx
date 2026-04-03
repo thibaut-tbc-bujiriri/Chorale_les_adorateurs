@@ -11,19 +11,21 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({ songId, className }: FavoriteButtonProps) {
-  const { user } = useAuth();
-  const { favoritesQuery, toggleFavorite } = useFavorites(user?.id);
+  const { user, loading } = useAuth();
+  const { favoritesQuery, toggleFavorite } = useFavorites(user?.id, { enabled: Boolean(user) && !loading });
 
   if (!user) return null;
 
-  const isFavorite = favoritesQuery.data?.some((favorite) => favorite.songId === songId);
+  const isFavorite = favoritesQuery.data?.some((favorite) => favorite.songId === songId) ?? false;
+  const isBusy = loading || toggleFavorite.isPending;
 
   return (
     <Button
-      variant="secondary"
+      variant={isFavorite ? "danger" : "secondary"}
       className={cn("justify-center whitespace-nowrap", className)}
       onClick={() => toggleFavorite.mutate(songId)}
-      isLoading={toggleFavorite.isPending}
+      isLoading={isBusy}
+      disabled={isBusy}
     >
       <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
       {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}

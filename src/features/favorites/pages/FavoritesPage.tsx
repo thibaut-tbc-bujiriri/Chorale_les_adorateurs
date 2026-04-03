@@ -1,14 +1,15 @@
 ﻿import { useMemo } from "react";
 
 import { EmptyState } from "@/components/common/EmptyState";
+import { Loader } from "@/components/common/Loader";
 import { SongList } from "@/components/songs/SongList";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useFavorites } from "@/features/favorites/hooks/useFavorites";
 import { useSongs } from "@/features/songs/hooks/useSongs";
 
 export default function FavoritesPage() {
-  const { user } = useAuth();
-  const { favoritesQuery } = useFavorites(user?.id);
+  const { user, loading } = useAuth();
+  const { favoritesQuery } = useFavorites(user?.id, { enabled: Boolean(user) && !loading });
   const { songsQuery } = useSongs();
 
   const favoriteSongs = useMemo(() => {
@@ -16,6 +17,19 @@ export default function FavoritesPage() {
     const ids = new Set(favoritesQuery.data.map((favorite) => favorite.songId));
     return songsQuery.data.filter((song) => ids.has(song.id));
   }, [favoritesQuery.data, songsQuery.data]);
+
+  if (loading || favoritesQuery.isLoading || songsQuery.isLoading) {
+    return <Loader label="Chargement des favoris..." />;
+  }
+
+  if (favoritesQuery.isError) {
+    return (
+      <EmptyState
+        title="Impossible de charger les favoris"
+        description={favoritesQuery.error instanceof Error ? favoritesQuery.error.message : "Erreur inconnue"}
+      />
+    );
+  }
 
   if (favoriteSongs.length === 0) {
     return (

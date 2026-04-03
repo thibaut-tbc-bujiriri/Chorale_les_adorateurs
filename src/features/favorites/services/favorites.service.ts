@@ -19,6 +19,8 @@ function mapFavorite(row: FavoriteRow): Favorite {
 }
 
 async function getByUser(userId: string) {
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from("favorites")
     .select("id, user_id, song_id, created_at")
@@ -30,6 +32,10 @@ async function getByUser(userId: string) {
 }
 
 async function toggle(userId: string, songId: string) {
+  if (!userId) {
+    throw new Error("Utilisateur non authentifié.");
+  }
+
   const { data: existing, error: existingError } = await supabase
     .from("favorites")
     .select("id")
@@ -49,7 +55,13 @@ async function toggle(userId: string, songId: string) {
     user_id: userId,
     song_id: songId,
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // favorites_user_song_unique: song already favorite in DB, treat as active state.
+    if ((error as { code?: string }).code === "23505") {
+      return { active: true };
+    }
+    throw new Error(error.message);
+  }
 
   return { active: true };
 }

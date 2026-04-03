@@ -3,8 +3,8 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useFavorites } from "@/features/favorites/hooks/useFavorites";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const { favoritesQuery } = useFavorites(user?.id);
+  const { user, loading } = useAuth();
+  const { favoritesQuery } = useFavorites(user?.id, { enabled: Boolean(user) && !loading });
 
   if (!user) return null;
 

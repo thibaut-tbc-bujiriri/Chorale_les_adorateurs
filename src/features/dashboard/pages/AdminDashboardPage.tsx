@@ -2,16 +2,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCategories } from "@/features/categories/hooks/useCategories";
+import { useFavorites } from "@/features/favorites/hooks/useFavorites";
 import { useSongs } from "@/features/songs/hooks/useSongs";
 import { useUsers } from "@/features/users/hooks/useUsers";
 
 const CHART_COLORS = ["#357352", "#4C9F70", "#84CC96", "#D97706", "#0EA5E9", "#8B5CF6"];
 
 export default function AdminDashboardPage() {
+  const { user, loading: authLoading } = useAuth();
   const { songsQuery } = useSongs();
   const { categoriesQuery } = useCategories();
   const { usersQuery } = useUsers();
+  const { favoritesQuery } = useFavorites(user?.id, { enabled: Boolean(user) && !authLoading });
 
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSongId, setSelectedSongId] = useState("");
@@ -21,11 +25,7 @@ export default function AdminDashboardPage() {
   const categories = categoriesQuery.data ?? [];
   const users = usersQuery.data ?? [];
 
-  const totalFavorites = useMemo(() => {
-    const raw = localStorage.getItem("chorale_favorites");
-    if (!raw) return 0;
-    return (JSON.parse(raw) as Array<{ id: string }>).length;
-  }, []);
+  const totalFavorites = favoritesQuery.data?.length ?? 0;
 
   const byCategory = useMemo(
     () =>
@@ -126,11 +126,12 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const isRefreshing = songsQuery.isFetching || categoriesQuery.isFetching || usersQuery.isFetching;
+  const isRefreshing = songsQuery.isFetching || categoriesQuery.isFetching || usersQuery.isFetching || favoritesQuery.isFetching;
   const loadError =
     (songsQuery.error instanceof Error && songsQuery.error.message) ||
     (categoriesQuery.error instanceof Error && categoriesQuery.error.message) ||
     (usersQuery.error instanceof Error && usersQuery.error.message) ||
+    (favoritesQuery.error instanceof Error && favoritesQuery.error.message) ||
     null;
 
   return (
