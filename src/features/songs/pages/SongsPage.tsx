@@ -71,6 +71,11 @@ export default function SongsPage() {
       </div>
 
       <SongSearchBar value={search} onChange={setSearch} />
+      {songsQuery.isError ? (
+        <p className="rounded-lg bg-rose-100 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
+          Impossible de charger les chants: {songsQuery.error instanceof Error ? songsQuery.error.message : "Erreur inconnue"}
+        </p>
+      ) : null}
       {songsQuery.isFetching ? <p className="text-xs text-slate-500">Actualisation des résultats...</p> : null}
       <SongFilters filters={filters} categories={categories} onChange={updateFilter} />
       <SongList songs={visibleSongs} />

@@ -14,7 +14,12 @@ function getSongsCacheKey(filters?: Partial<SongFilters> & { search?: string }) 
 function readSongsCache(filters?: Partial<SongFilters> & { search?: string }) {
   try {
     const raw = localStorage.getItem(getSongsCacheKey(filters));
-    return raw ? (JSON.parse(raw) as Awaited<ReturnType<typeof songsService.getAll>>) : undefined;
+    if (!raw) return undefined;
+
+    const parsed = JSON.parse(raw) as Awaited<ReturnType<typeof songsService.getAll>>;
+    // Avoid pinning the UI to an old empty cache snapshot when DB now has data.
+    if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
+    return parsed;
   } catch {
     return undefined;
   }
@@ -42,6 +47,8 @@ export function useSongs(filters?: Partial<SongFilters> & { search?: string }) {
     placeholderData: keepPreviousData,
     initialData: cachedSongs,
     initialDataUpdatedAt: cachedSongs ? Date.now() : undefined,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
   });
 
   const createSong = useMutation({

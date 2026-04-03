@@ -12,6 +12,16 @@ interface SongViewRow {
   created_at: string;
 }
 
+interface SongTableRow {
+  id: string;
+  number: string;
+  title: string;
+  author: string;
+  lyrics: string;
+  created_at: string;
+  categories: { name: string } | { name: string }[] | null;
+}
+
 interface CategoryLookupRow {
   id: string;
   name: string;
@@ -27,6 +37,38 @@ function mapSong(row: SongViewRow): Song {
     lyrics: row.lyrics,
     createdAt: row.created_at,
   };
+}
+
+function mapSongFromTable(row: SongTableRow): Song {
+  const categoryValue = Array.isArray(row.categories) ? row.categories[0] : row.categories;
+
+  return {
+    id: row.id,
+    number: row.number,
+    title: row.title,
+    author: row.author,
+    category: categoryValue?.name ?? "Sans catégorie",
+    lyrics: row.lyrics,
+    createdAt: row.created_at,
+  };
+}
+
+function applySongFilters(songs: Song[], filters?: Partial<SongFilters> & { search?: string }) {
+  if (!filters) return songs;
+
+  const normalizedSearch = filters.search?.trim().toLowerCase();
+
+  return songs.filter((song) => {
+    if (filters.category && song.category !== filters.category) return false;
+    if (filters.author && !song.author.toLowerCase().includes(filters.author.toLowerCase())) return false;
+    if (filters.number && !song.number.toLowerCase().includes(filters.number.toLowerCase())) return false;
+    if (filters.lyrics && !song.lyrics.toLowerCase().includes(filters.lyrics.toLowerCase())) return false;
+
+    if (!normalizedSearch) return true;
+
+    const haystack = [song.number, song.title, song.author, song.category, song.lyrics].join(" ").toLowerCase();
+    return haystack.includes(normalizedSearch);
+  });
 }
 
 async function getCategoryIdByName(name: string) {
@@ -71,8 +113,23 @@ async function getAll(filters?: Partial<SongFilters> & { search?: string }) {
   }
 
   const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return (data ?? []).map(mapSong);
+
+  if (!error) {
+    return (data ?? []).map(mapSong);
+  }
+
+  // Fallback if songs_view is not available or mismatched in current DB schema.
+  const { data: fallbackData, error: fallbackError } = await supabase
+    .from("songs")
+    .select("id, number, title, author, lyrics, created_at, categories(name)")
+    .order("number", { ascending: true });
+
+  if (fallbackError) {
+    throw new Error(error.message || fallbackError.message);
+  }
+
+  const mapped = (fallbackData ?? []).map((row) => mapSongFromTable(row as SongTableRow));
+  return applySongFilters(mapped, filters);
 }
 
 async function getById(id: string) {
@@ -84,8 +141,23 @@ async function getById(id: string) {
 
   const song = data?.[0];
 
-  if (error || !song) throw new Error(error?.message ?? "Chant introuvable");
-  return mapSong(song as SongViewRow);
+  if (!error && song) {
+    return mapSong(song as SongViewRow);
+  }
+
+  const { data: fallbackData, error: fallbackError } = await supabase
+    .from("songs")
+    .select("id, number, title, author, lyrics, created_at, categories(name)")
+    .eq("id", id)
+    .limit(1);
+
+  const fallbackSong = fallbackData?.[0];
+
+  if (fallbackError || !fallbackSong) {
+    throw new Error(error?.message ?? fallbackError?.message ?? "Chant introuvable");
+  }
+
+  return mapSongFromTable(fallbackSong as SongTableRow);
 }
 
 async function create(payload: SongPayload) {

@@ -15,6 +15,16 @@ export default function AdminSongsPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (songsQuery.isLoading) return <Loader label="Chargement des chants..." />;
+  if (songsQuery.isError) {
+    return (
+      <section className="space-y-4">
+        <h1 className="text-2xl font-bold">Gestion des chants</h1>
+        <p className="rounded-lg bg-rose-100 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
+          Impossible de charger les chants: {songsQuery.error instanceof Error ? songsQuery.error.message : "Erreur inconnue"}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">
