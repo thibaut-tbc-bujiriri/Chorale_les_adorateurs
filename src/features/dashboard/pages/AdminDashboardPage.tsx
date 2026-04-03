@@ -52,6 +52,11 @@ export default function AdminDashboardPage() {
   ];
 
   const isRefreshing = songsQuery.isFetching || categoriesQuery.isFetching || usersQuery.isFetching;
+  const loadError =
+    (songsQuery.error instanceof Error && songsQuery.error.message) ||
+    (categoriesQuery.error instanceof Error && categoriesQuery.error.message) ||
+    (usersQuery.error instanceof Error && usersQuery.error.message) ||
+    null;
 
   return (
     <section className="space-y-6">
@@ -59,6 +64,11 @@ export default function AdminDashboardPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard admin</h1>
         <p className="text-sm text-slate-600 dark:text-slate-300">Vue globale de l'activité de la chorale.</p>
         {isRefreshing ? <p className="mt-1 text-xs text-slate-500">Actualisation en cours...</p> : null}
+        {loadError ? (
+          <p className="mt-2 rounded-lg bg-rose-100 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/30 dark:text-rose-200">
+            Impossible de synchroniser les données: {loadError}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

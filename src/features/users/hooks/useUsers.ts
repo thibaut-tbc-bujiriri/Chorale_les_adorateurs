@@ -5,12 +5,16 @@ import { queryKeys } from "@/lib/queryKeys";
 import { usersService } from "../services/users.service";
 import type { CreateUserPayload, UserPayload } from "../types/user.types";
 
-const USERS_CACHE_KEY = "chorale_cache_users_v1";
+const USERS_CACHE_KEY = "chorale_cache_users_v2";
 
 function readUsersCache() {
   try {
     const raw = localStorage.getItem(USERS_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as Awaited<ReturnType<typeof usersService.getAll>>) : undefined;
+    if (!raw) return undefined;
+
+    const parsed = JSON.parse(raw) as Awaited<ReturnType<typeof usersService.getAll>>;
+    if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
+    return parsed;
   } catch {
     return undefined;
   }
@@ -38,6 +42,8 @@ export function useUsers() {
     placeholderData: keepPreviousData,
     initialData: cachedUsers,
     initialDataUpdatedAt: cachedUsers ? Date.now() : undefined,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
   });
 
   const createUser = useMutation({

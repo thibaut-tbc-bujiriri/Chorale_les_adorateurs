@@ -4,12 +4,16 @@ import { queryKeys } from "@/lib/queryKeys";
 
 import { categoriesService } from "../services/categories.service";
 
-const CATEGORIES_CACHE_KEY = "chorale_cache_categories_v1";
+const CATEGORIES_CACHE_KEY = "chorale_cache_categories_v2";
 
 function readCategoriesCache() {
   try {
     const raw = localStorage.getItem(CATEGORIES_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as Awaited<ReturnType<typeof categoriesService.getAll>>) : undefined;
+    if (!raw) return undefined;
+
+    const parsed = JSON.parse(raw) as Awaited<ReturnType<typeof categoriesService.getAll>>;
+    if (!Array.isArray(parsed) || parsed.length === 0) return undefined;
+    return parsed;
   } catch {
     return undefined;
   }
@@ -37,6 +41,8 @@ export function useCategories() {
     placeholderData: keepPreviousData,
     initialData: cachedCategories,
     initialDataUpdatedAt: cachedCategories ? Date.now() : undefined,
+    refetchOnMount: "always",
+    refetchOnReconnect: true,
   });
 
   const createCategory = useMutation({

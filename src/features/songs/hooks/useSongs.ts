@@ -5,7 +5,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { songsService } from "../services/songs.service";
 import type { SongFilters, SongPayload } from "../types/song.types";
 
-const SONGS_CACHE_PREFIX = "chorale_cache_songs_v1";
+const SONGS_CACHE_PREFIX = "chorale_cache_songs_v2";
 
 function getSongsCacheKey(filters?: Partial<SongFilters> & { search?: string }) {
   return `${SONGS_CACHE_PREFIX}:${JSON.stringify(filters ?? {})}`;
